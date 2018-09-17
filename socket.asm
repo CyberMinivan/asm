@@ -1,6 +1,9 @@
-; Minivan Socket Server
+;-----------------------------------
+; Minivan Test Server
+;-----------------------------------
 global _start
 
+; sockaddr structure
 struc sockaddr_in
   .sin_family resw 1
   .sin_port resw 1
@@ -8,26 +11,31 @@ struc sockaddr_in
   .sin_zero resb 8
 endstruc
 
+;-----------------------------------
 section .bss
+  ; Allocate space for Structures
   sock resw 2
   client resw 2
 
+;-----------------------------------
 section .data
+  ; Messages
   msg db "[+] Minivan Server", 0xA, 0
   len_msg equ $ - msg
 
-  resp db "[-] Server Response", 0xA, 0
+  resp db 0x44,0x45,0x41,0x44,0x42,0x45,0x45,0x46,0xA,0 ; DEADBEEF\n
   len_resp equ $ - resp
 
-  ; sockaddr_in structure for the address the listening socket binds to
+  ; sockaddr_in structure / listener
   pop_sa istruc sockaddr_in
-    at sockaddr_in.sin_family, dw 2            ; AF_INET
-    at sockaddr_in.sin_port, dw 0xa1ed        ; port 60833
-    at sockaddr_in.sin_addr, dd 0             ; localhost
+    at sockaddr_in.sin_family, dw 2           ; AF_INET
+    at sockaddr_in.sin_port, dw 0x5c11        ; port 4444
+    at sockaddr_in.sin_addr, dd 0             ; IP
     at sockaddr_in.sin_zero, dd 0, 0
   iend
-  sockaddr_in_len     equ $ - pop_sa
+  sockaddr_in_len equ $ - pop_sa
 
+;-----------------------------------
 section .text
 
 _start:
@@ -43,6 +51,7 @@ _start:
   mov word [client], 0
   call _socket
   call _listen
+  ; Main Loop to Accept & Respond
   .loop:
     call _accept
     call _response
@@ -51,16 +60,18 @@ _start:
     mov word [client], 0
   jmp .loop
 
+  ; Exit Gracefully
   call _exit
 
 _socket:
   ; Create Socket
-  mov rax, 41
-  mov rdi, 2
-  mov rsi, 1
-  mov rdx, 0
+  mov rax, 41   ; SYS_SOCKET
+  mov rdi, 2    ; Family
+  mov rsi, 1    ; Type
+  mov rdx, 0    ; Protocol
   syscall
-  mov [sock], rax
+
+  mov [sock], rax ; Move Result into Socket Structure
   ret
 
 _listen:
@@ -102,8 +113,8 @@ _close:
   syscall
   ret 
 
-_exit:
+_exit: 
+  ; Exit syscall 
   mov rax, 60
   mov rdi, 0
   syscall
-
