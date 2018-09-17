@@ -28,7 +28,6 @@ section .data
   iend
   sockaddr_in_len     equ $ - pop_sa
 
-
 section .text
 
 _start:
