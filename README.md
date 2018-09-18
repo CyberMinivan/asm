@@ -12,5 +12,5 @@ Playground for Assembly
 ./compile test 32
 
 ### Test Server
-
-[logo]: https://github.com/CyberMinivan/asm/raw/master/OpenSecServer.PNG "OpenSec Test Server"
+---
+![alt text](https://github.com/CyberMinivan/asm/raw/master/OpenSecServer.PNG "OpenSec Test Server")
