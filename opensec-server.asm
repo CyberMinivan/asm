@@ -29,7 +29,7 @@ section .data
   intro db "[+] OpenSec Test Server", 0xA, 0          ; Intro Message
 
   argfail db "[-] Invalid Arguments Passed", 0xA      ; Invalid Arguments message
-          db 0x9,"Usage: ./server <filename> <port>", 0xA
+          db 0x9,"Usage: ./server <filename> <port>", 0xA, 0
 
   notfound db "[-] File Not Found", 0xA,0
   opensocket db "[+] Creating Socket", 0xA, 0
@@ -126,12 +126,6 @@ _start:
     mov word [client], 0  ; Reset client FD
   jmp .mainloop
 
-;-- Gracefully Exit --;
-_exit:
-  mov rax, 60         ; SYS_EXIT
-  mov rdi, 0          ; Return Code
-  syscall
-
 ;-- Invalid Arguments --;
 _invargs:
   mov rsi, argfail
@@ -227,3 +221,12 @@ _filenotfound:
   mov rsi, notfound
   call _print
   call _exit
+
+;-- Gracefully Exit --;
+_exit:
+  mov rax, 60   ; SYS_EXIT
+  mov rdi, 1
+  syscall
+
+
+
