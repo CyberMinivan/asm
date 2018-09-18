@@ -13,4 +13,4 @@ Playground for Assembly
 
 ### Test Server
 
-[logo]: https://github.com/cyberminivan/asm/raw/master/src/common/images/icon48.png "OpenSec Test Server"
+[logo]: https://github.com/CyberMinivan/asm/raw/master/OpenSecServer.PNG "OpenSec Test Server"
