@@ -49,7 +49,8 @@ section .data
 section .text
 
 ;-- Convert 2nd Argument Into Hex --;
-_convert:
+_convertport:
+  ; Add String to Hex Code Here
 
   ret
 
@@ -75,18 +76,19 @@ _getlen:
 
 ;-- Start of Program --;
 _start:
-  lea r8, [rsp + 16]  ; Load First argument Address into r8
-  lea r11, [rsp + 24] ; Second Argument
-  lea r9, [rsp]
-  push r9             ; Argument Count
+  mov r8, [rsp + 16]  ; Load First argument Address into r8
+  mov r11, [rsp + 24] ; Second Argument
+  mov rax, [rsp]      ; Obtain Argument Count
+  push rax            ; Save Argument Count
   
   mov rsi, intro      ; Print Intro Message
   call _print
 
   pop rax             ; Pop Argument Count
-  cmp byte [rax], 3   ; Compare to 2 ("./server <filename> <port>")
+  cmp rax, 3          ; Compare to 3 ("./server <filename> <port>")
   jne _invargs        ; If not Exit, Display & Exit
 
+  call _convertport   ; Convert Port & Store
   call _readfile      ; Read File Into Response Buffer
 
   ; Begin Socket Programming
@@ -120,7 +122,7 @@ _invargs:
 _readfile:
   mov rax, 2  ; SYS_OPEN
   mov rsi, 0  ; Flags
-  mov rdi, [r8]
+  mov rdi, r8
   syscall
 
   test rax, rax
