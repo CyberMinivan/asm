@@ -39,7 +39,7 @@ section .data
 
   pop_sa istruc sockaddr_in             ; Local Side Socket Address Structure
     at sockaddr_in.sin_family, dw 2
-    at sockaddr_in.sin_port, dw 0x5c11
+    at sockaddr_in.sin_port, dw 0       ; Port Number
     at sockaddr_in.sin_addr, dd 0 
     at sockaddr_in.sin_zero, dd 0, 0
   iend
@@ -51,7 +51,27 @@ section .text
 ;-- Convert 2nd Argument Into Hex --;
 _convertport:
   ; Add String to Hex Code Here
-
+  xor rax, rax  ; Math Variable
+  xor rbx, rbx  ; Result
+  xor rcx, rcx  ; Counter
+  .portloop:
+    movzx rax, byte [r9 + rcx]    ; Get First Digit
+    cmp rax, 0                    ; Check if its end of string
+    je .portdone
+    sub rax, 48                   ; Get Decimal # of digit 
+    push rax
+    mov rax, rbx  ;
+    mov rdx, 10   ; Multiply by 10
+    mul rdx       ;
+    mov rbx, rax  ; Place Result in rbx
+    pop rax       
+    add rbx, rax  ; add current # to result
+    inc rcx       ; Increment Count
+  jmp .portloop
+  .portdone:
+  ror bx, 8       ; Rotate By 8 Bits (Swaps the Hex Characters)
+  lea rax, [pop_sa + 2]
+  mov [rax], word bx
   ret
 
 ;-- Print Function --;
@@ -77,7 +97,7 @@ _getlen:
 ;-- Start of Program --;
 _start:
   mov r8, [rsp + 16]  ; Load First argument Address into r8
-  mov r11, [rsp + 24] ; Second Argument
+  mov r9, [rsp + 24] ; Second Argument
   mov rax, [rsp]      ; Obtain Argument Count
   push rax            ; Save Argument Count
   
