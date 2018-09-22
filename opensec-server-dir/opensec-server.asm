@@ -1,6 +1,6 @@
-;----------------------------;
-;-- OpenSec Server Example --;
-;----------------------------;
+;----------------------------------;
+;-- Open Security Server Example --;
+;----------------------------------;
 
 %define FILE_SIZE 1024  ; Max Response Size
 
@@ -21,29 +21,37 @@ section .bss
 
 ;-- Data Section --;
 section .data
+  ; Signal Interrupt
+  sigaction:
+    sa_handler dq _exit
+    sa_flags dq 0x04000000
+    sa_restorer dq 0
+    sa_masq times 16 dq 0
+
   ; File Variables
   filebuffer times FILE_SIZE db 0
+  filesize dq 0
   fd dw 0
 
   ; Messages
-  intro db "[+] OpenSec Test Server", 0xA, 0          ; Intro Message
-
-  argfail db "[-] Invalid Arguments Passed", 0xA      ; Invalid Arguments message
+  intro db "[+] Open Security Test Server", 0xA, 0    ; Intro Message
+  intmsg db "[+] Exiting...", 0xA, 0                  ; Interrupt Message
+  argfail db "[-] Invalid Arguments", 0xA             ; Invalid Arguments message
           db 0x9,"Usage: ./server <filename> <port>", 0xA, 0
 
-  notfound db "[-] File Not Found", 0xA,0
-  opensocket db "[+] Creating Socket", 0xA, 0
-  bindsocket db "[+] Binding to Port", 0xA, 0
-  listensocket db "[+] Listening...", 0xA, 0
-  accepted db "[*] Accepted Connection [*]", 0xA, 0
+  notfound db "[-] File Not Found", 0xA,0             ; File not found message
+  opensocket db "[+] Creating Socket", 0xA, 0         ; Opening socket message
+  bindsocket db "[+] Binding to Port", 0xA, 0         ; Bind socket message
+  listensocket db "[+] Listening...", 0xA, 0          ; Listening message
+  accepted db "[*] Accepted Connection [*]", 0xA, 0   ; Accepted connection message
 
   pop_sa istruc sockaddr_in             ; Local Side Socket Address Structure
-    at sockaddr_in.sin_family, dw 2
+    at sockaddr_in.sin_family, dw 2     ; AF_INET
     at sockaddr_in.sin_port, dw 0       ; Port Number
-    at sockaddr_in.sin_addr, dd 0 
+    at sockaddr_in.sin_addr, dd 0       ; 0 - All Interfaces 
     at sockaddr_in.sin_zero, dd 0, 0
   iend
-  sockaddr_in_len equ $ - pop_sa
+  sockaddr_in_len equ $ - pop_sa        ; Length of the above structure
 
 ;-- Code Section --;
 section .text
@@ -55,7 +63,7 @@ _convertport:
   xor rbx, rbx  ; Result
   xor rcx, rcx  ; Counter
   .portloop:
-    movzx rax, byte [r9 + rcx]    ; Get First Digit
+    movzx rax, byte [r9 + rcx]    ; Get Single Digit
     cmp rax, 0                    ; Check if its end of string
     je .portdone
     sub rax, 48                   ; Get Decimal # of digit 
@@ -101,6 +109,14 @@ _start:
   mov rax, [rsp]      ; Obtain Argument Count
   push rax            ; Save Argument Count
   
+  ; Signal Handling
+  mov r10, 8
+  xor rdx, rdx        ; 
+  mov rsi, sigaction  ; sigaction act Signal Structure
+  mov rdi, 2    ; SYS_INT
+  mov rax, 13   ; SYS_RT_SIGACTION
+  syscall  
+
   mov rsi, intro      ; Print Intro Message
   call _print
 
@@ -148,6 +164,7 @@ _readfile:
   mov rsi, filebuffer
   mov rdx, FILE_SIZE
   syscall
+  mov [filesize], rax
 
   mov rdi, [fd]     ; Close FD
   call _close       ; SYS_CLOSE
@@ -212,7 +229,7 @@ _response:
   mov rax, 1
   mov rdi, [client]
   mov rsi, filebuffer 
-  mov rdx, FILE_SIZE
+  mov rdx, [filesize]
   syscall
   ret
 
@@ -224,6 +241,26 @@ _filenotfound:
 
 ;-- Gracefully Exit --;
 _exit:
+  mov rsi, intmsg
+  call _print
+
+  ; Close Client
+  mov rax, [client]
+  cmp rax, 0
+  je .closeserver
+  mov rdi, [client]
+  call _close  
+
+  .closeserver:
+  ; Close Server
+  mov rax, [sock]
+  cmp rax, 0
+  je .doneclosing
+  mov rdi, [sock]
+  call _close
+
+  .doneclosing:
+
   mov rax, 60   ; SYS_EXIT
   mov rdi, 1
   syscall
