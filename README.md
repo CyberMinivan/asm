@@ -3,14 +3,12 @@ Playground for Assembly
 
 ### Compiling
 
-64 Bit
----
-./compile test 64
-
-32 Bit
+32 Bit/64 Bit
 ---
 ./compile test 32
+./compile test 64
 
-### Test Server
+
+### Projects
 ---
-![alt text](https://github.com/CyberMinivan/asm/raw/master/img/OpenSecServer.PNG "OpenSec Test Server")
+![alt text](https://github.com/CyberMinivan/asm/raw/master/opensec-server-dir/img/OpenSecServer.PNG "OpenSec Test Server")
