@@ -6,6 +6,7 @@ Playground for Assembly
 32 Bit/64 Bit
 ---
 ./compile test 32
+
 ./compile test 64
 
 
